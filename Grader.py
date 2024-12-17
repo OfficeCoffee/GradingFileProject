@@ -4,6 +4,7 @@ import shutil
 import sys
 import os
 
+
 def print_message(message: str) -> None:
     """
     Logs a message to the console.
