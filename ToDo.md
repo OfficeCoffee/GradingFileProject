@@ -15,6 +15,8 @@
 
 - Create individual folders named after the individual student's names follwing the format `lastNam_firstName` and move them into the main grading directory
 
+- For each `.java` file, rename the file name and class name to `lastName_firstName_originalFileName.java`
+
 - For each student submission, locate the driver class and rename that class to follow this format `lastName_firstName`
 
   
