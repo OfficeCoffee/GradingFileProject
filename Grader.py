@@ -4,7 +4,7 @@ import shutil
 import sys
 import os
 
-# new testing comment
+# better testing comment
 
 def print_message(message: str) -> None:
     """
