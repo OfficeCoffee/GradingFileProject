@@ -4,8 +4,6 @@ import shutil
 import sys
 import os
 
-# new testing comment
-
 def print_message(message: str) -> None:
     """
     Logs a message to the console.
@@ -30,7 +28,7 @@ def joiner(directory_path: str, *file_names: str) -> LiteralString | str:
     return os.path.join(directory_path, *file_names)
 
 
-def is_dir(directory_path: str, file_name: str) -> bool:
+def is_dir(directory_path: str, *file_name: str) -> bool:
     """
     Determines if the provided path is a directory/folder.
 
@@ -39,7 +37,7 @@ def is_dir(directory_path: str, file_name: str) -> bool:
         within the provided path.
     :return: True if the combined path is a directory, False otherwise.
     """
-    return os.path.isdir(joiner(directory_path, file_name))
+    return os.path.isdir(joiner(directory_path, *file_name))
 
 
 def prepare_directory(directory_path: str) -> None:
@@ -49,17 +47,17 @@ def prepare_directory(directory_path: str) -> None:
 
     :param directory_path: Path of the directory to prepare
     """
-    # If the folder exists, the contents will be deleted. Otherwise, it will be created
-    if os.path.exists(directory_path):
-        for file_name in os.listdir(directory_path):
-            # If a given item is a folder, its contents will be deleted. Otherwise, the file is deleted
-            if is_dir(directory_path, file_name):
-                for nested_file_name in os.listdir(joiner(directory_path, file_name)):
-                    os.remove(joiner(directory_path, file_name, nested_file_name))
+    try:
+        # If the folder exists, the contents will be deleted. Otherwise, it will be created
+        if os.path.exists(directory_path):
+            if not is_dir(directory_path):
+                os.remove(directory_path)
             else:
-                os.remove(joiner(directory_path, file_name))
-    else:
-        os.makedirs(directory_path)
+                shutil.rmtree(directory_path)
+        else:
+            os.makedirs(directory_path)
+    except Exception as e:
+        print_message(f"An error occurred while preparing directory {directory_path}: {e}")
 
 
 def extract_zip_file(zip_file_path: str, extraction_path: str) -> None:
@@ -69,16 +67,12 @@ def extract_zip_file(zip_file_path: str, extraction_path: str) -> None:
     :param zip_file_path: The path of the zip file to be extracted
     :param extraction_path: The path of the directory to extract to
     """
-    # Ensures directory is created or cleared of its contents
-    prepare_directory(extraction_path)
-
-    # Extracts all files to a specified folder
     try:
         with zipfile.ZipFile(zip_file_path, 'r') as target_zip:
             target_zip.extractall(extraction_path)
         print_message(f"Files extracted to {extraction_path}")
     except FileNotFoundError:
-        print_message("Zip file not found")
+        print_message(f"Could not find zip file: {zip_file_path}")
     except Exception as e:
         print_message(f"An error occurred during extraction: {e}")
         sys.exit(1)
@@ -99,6 +93,7 @@ def alter_name_order(student_submission_path: str, first_last_order: str, last_f
         if sub.split(" - ")[1] == first_last_order:
             break
         index_counter += 1
+
     # Changes students name to last/first order from first/last order
     file_as_list = all_subs[index_counter].split(" - ")
     file_as_list[1] = last_first_order
@@ -154,10 +149,32 @@ def create_student_folders(student_submission_path: str) -> None:
         sys.exit(1)
 
 
+def extract_student_subs(student_submission_path: str) -> None:
+    """
+    Unzips all potential zip files in each named student folder.
+
+    :param student_submission_path: The path of the student submission folder
+    """
+    try:
+        for folder in os.listdir(student_submission_path):
+            if folder == "index.html":
+                continue
+            for file in os.listdir(joiner(student_submission_path, folder)):
+                if file.endswith(".zip"):
+                    extract_zip_file(joiner(student_submission_path, folder, file),
+                                     joiner(student_submission_path, folder))
+                    os.remove(joiner(student_submission_path, folder, file))
+    except Exception as e:
+        print_message(f"An error occurred while extracting student zip files: {e}")
+        sys.exit(1)
+
+
 # Main method
 
 zip_path = ".\\Project 4 Download Dec 14, 2024 827 PM.zip"
 extracted_path = ".\\Student Submissions\\"
 
+prepare_directory(extracted_path)
 extract_zip_file(zip_path, extracted_path)
 create_student_folders(extracted_path)
+extract_student_subs(extracted_path)
