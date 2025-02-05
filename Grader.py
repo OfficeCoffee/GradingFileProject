@@ -4,6 +4,7 @@ import zipfile
 import shutil
 import sys
 import os
+import datetime
 import string
 
 
@@ -59,8 +60,9 @@ def prepare_directory(directory_path: str) -> None:
                 shutil.rmtree(directory_path)
         else:
             os.makedirs(directory_path)
+
     except Exception as e:
-        print_message(f"An error occurred while preparing directory {directory_path}: {e}")
+        print_message(f"(-) An error occurred while preparing directory {directory_path}: {e}")
 
 
 def extract_zip_file(zip_file_path: str, extraction_path: str) -> None:
@@ -75,18 +77,18 @@ def extract_zip_file(zip_file_path: str, extraction_path: str) -> None:
             target_zip.extractall(extraction_path)
 
     except FileNotFoundError:
-        print_message(f"Could not find zip file: {zip_file_path}")
+        print_message(f"(-) Could not find zip file: {zip_file_path}")
 
     except Exception as e:
-        print_message(f"An error occurred during extraction: {e}")
+        print_message(f"(-) An error occurred during extraction: {e}")
         sys.exit(1)
 
 
-def alter_name_order(student_submission_path: str, submission_file_name: str, last_first_order: str) -> None:
+def alter_file_name_formatting(student_submission_path: str, submission_file_name: str, last_first_order: str) -> None:
     """
-    Changes the name order of students' name in their submission files.
+    Changes the name order of students' name and the format of the timestamp in their submission files.
 
-    :param submission_file_name: FIXME
+    :param submission_file_name: The current file's name should be formatted
     :param student_submission_path: Path to the directory containing student submissions
     :param last_first_order: The new name order that the submission files should be changed to
     """
@@ -110,16 +112,37 @@ def alter_name_order(student_submission_path: str, submission_file_name: str, la
               joiner(student_submission_path, new_file_name))
 
 
+def create_extracted_folder() -> str:
+    """
+    Creates a folder for all the student submissions.
+
+    :return: The path of the created folder.
+    """
+    date = datetime.datetime.now()
+    directory_name = "StudentSubmissions " + date.strftime("%Y-%m-%d %H-%M-%S")
+
+    try:
+        prepare_directory(directory_name)
+        print_message(f"(-) Directory '{directory_name}' created successfully.")
+        return os.path.abspath(directory_name)
+
+    except PermissionError:
+        print_message(f"(-) Permission denied: Unable to create '{directory_name}'.")
+
+    except Exception as e:
+        print_message(f"(-) An error occurred: {e}")
+
+
 def is_most_recent_submission(selected_submission_name: str, student_folder_path: str) -> bool:
     """
-
+    FIXME: Implement this functionality and documentation
     :param selected_submission_name:
     :param student_folder_path:
     :return:
     """
-    for submission_name in os.listdir(student_folder_path):
-        if submission_name.split(" ")[3] == selected_submission_name.split(" ")[3]:
-            print()
+    # for submission_name in os.listdir(student_folder_path):
+    #     if submission_name.split(" ")[3] == selected_submission_name.split(" ")[3]:
+    #         print_message("")
 
 
 def create_student_folders(student_submission_path: str) -> None:
@@ -140,7 +163,7 @@ def create_student_folders(student_submission_path: str) -> None:
             last_name = student_name[len(student_name) - 1]
             first_name = " ".join(student_name[:len(student_name) - 1])
             student_names.append(f"{last_name}, {first_name}")
-            alter_name_order(student_submission_path, file_name, f"{last_name}, {first_name}")
+            alter_file_name_formatting(student_submission_path, file_name, f"{last_name}, {first_name}")
 
         student_names = list(set(student_names)) # Removes duplicates from name list
         student_names.sort() # Sorts students names alphabetically by last name
@@ -167,11 +190,11 @@ def create_student_folders(student_submission_path: str) -> None:
                 # add logic to remove other submissions here
 
     except IndexError:
-        print_message(f"An error occurred while organizing student folders")
+        print_message(f"(-) An error occurred while organizing student folders")
         sys.exit(1)
 
     except Exception as e:
-        print_message(f"An error occurred while organizing student folders: {e}")
+        print_message(f"(-) An error occurred while organizing student folders: {e}")
         sys.exit(1)
 
 
@@ -191,18 +214,20 @@ def extract_student_subs(student_submission_path: str) -> None:
                                      joiner(student_submission_path, folder))
                     os.remove(joiner(student_submission_path, folder, file))
 
-
     except Exception as e:
-        print_message(f"An error occurred while extracting student zip files: {e}")
+        print_message(f"(-) An error occurred while extracting student zip files: {e}")
         sys.exit(1)
 
 
 # Main method
 
-zip_path = "./Project 4 Download Dec 14, 2024 827 PM.zip"
-extracted_path = "./Student Submissions/"
+zip_path = input("Enter the path of the zip file: ")
+zip_path = zip_path.replace('\\','/')
+zip_path = zip_path.replace('"','')
 
-prepare_directory(extracted_path)
-extract_zip_file(zip_path, extracted_path)
-create_student_folders(extracted_path)
-extract_student_subs(extracted_path)
+#"C:\Users\roset\OneDrive\Desktop\Project 4 Download Dec 16, 2024 957 PM.zip"
+extracted_path = create_extracted_folder()
+
+extract_zip_file(zip_path, str(extracted_path))
+create_student_folders(str(extracted_path))
+extract_student_subs(str(extracted_path))
