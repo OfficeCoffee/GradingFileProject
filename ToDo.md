@@ -1,4 +1,6 @@
 # Features to Implement:
+- Implement GUI/TUI interface/menu for options or directory selection 
+- Change "Student Submissions `date`" to "Student Submissions: ``"
 - If a student has submitted multiple files, only take the most recent submission
     - If there are multiple submissions one or two minutes apart, batch and take them all
 - For each `.java` file, rename the file name and class name to `lastName_firstName_originalFileName.java`

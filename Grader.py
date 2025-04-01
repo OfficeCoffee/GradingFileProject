@@ -5,8 +5,6 @@ import shutil
 import sys
 import os
 import datetime
-import string
-
 
 def print_message(message: str) -> None:
     """
@@ -74,13 +72,46 @@ def extract_zip_file(zip_file_path: str, extraction_path: str) -> None:
     """
     try:
         with zipfile.ZipFile(zip_file_path, 'r') as target_zip:
-            target_zip.extractall(extraction_path)
+            if zip_file_path.__contains__("Download") and (zip_file_path.__contains__("Project")
+                                                           or zip_file_path.__contains__("Lab Problem")):
+                target_zip.extractall(extraction_path)
+            else:
+                """
+                Obtains the timestamp in the file's name by filtering out other information from zip_file_path
+                
+                # Replaces any \\ characters (for Windows users) into \ for UNIX operating systems 
+                -> /home/username/GradingFileProject/StudentSubmissions/LastName, FirstName/
+                    123456-123456 - LastName, FirstName - TIMESTAMP - filename.zip
+                
+                # Splits the path up into its parts based on the \. 
+                -> ['home', 'username', 'GradingFileProject', 'StudentSubmissions', 'LastName, FirstName', 
+                    '123456-123456 - LastName, FirstName - TIMESTAMP - filename.zip']
+                
+                # The [-1:] grabs the last item in the list, which is the name of the zipfile. 
+                # Since we are still in a list, the [0] grabs the zipfile name string. 
+                -> '123456-123456 - LastName, FirstName - TIMESTAMP - filename.zip'
+               
+                # Another split happens with (" - "). The [2] grabs the timestamp part of the zipfile name. 
+                -> ['123456-123456', 'LastName, FirstName', 'TIMESTAMP', 'filename.zip']
+                """
+                file_timestamp = zip_file_path.replace('\\', '/').split("/")[-1:][0].split(" - ")[2] + " #0"
+
+                # If there are submissions with the same timestamp, increment a counter so nothing gets replaced
+                while is_dir(extraction_path, file_timestamp):
+                    file_timestamp_list = file_timestamp.split(" ")
+                    submission_counter = file_timestamp_list[2][1]
+                    file_timestamp_list[2] = "#" + str(int(submission_counter) + 1)
+                    file_timestamp = " ".join(file_timestamp_list)
+
+                # Create a new folder with the submission's timestamp and extract the submission files to this folder
+                os.mkdir(joiner(extraction_path, file_timestamp))
+                target_zip.extractall(joiner(extraction_path, file_timestamp))
 
     except FileNotFoundError:
         print_message(f"(-) Could not find zip file: {zip_file_path}")
 
     except Exception as e:
-        print_message(f"(-) An error occurred during extraction: {e}")
+        print_message(f"(-) An error occurred while extracting {zip_file_path}: {e}")
         sys.exit(1)
 
 
@@ -92,7 +123,6 @@ def alter_file_name_formatting(student_submission_path: str, submission_file_nam
     :param student_submission_path: Path to the directory containing student submissions
     :param last_first_order: The new name order that the submission files should be changed to
     """
-
     # Changes students name to last/first order from first/last order
     file_name_as_list = submission_file_name.split(" - ")
     file_name_as_list[1] = last_first_order
@@ -102,9 +132,9 @@ def alter_file_name_formatting(student_submission_path: str, submission_file_nam
     file_name_old_hour_format[3] = file_name_old_hour_format[3][:-2] + ":" + file_name_old_hour_format[3][-2:]
 
     # Parses the submission's full time value by converting it into a number and removing punctuation from it.
-    # Example "Dec 7, 2024 915 PM" -> "2024-12-07 21:15:00" -> "20241207_2115"
-    file_name_as_list[2] = str(parse(" ".join(file_name_old_hour_format))).translate(
-        str.maketrans('', '', string.punctuation)).replace(" ", "_")[:-2]
+    # Example "Dec 7, 2024 915 PM" -> "2024-12-07 21:15:00"
+    file_name_as_list[2] = str(parse(" ".join(file_name_old_hour_format)))
+    # .translate(str.maketrans('', '', string.punctuation)).replace(" ", "_")[:-2] TODO: move this elsewhere
 
     # Renames the current submission name with the newly formated file name
     new_file_name = " - ".join(file_name_as_list)
@@ -112,25 +142,36 @@ def alter_file_name_formatting(student_submission_path: str, submission_file_nam
               joiner(student_submission_path, new_file_name))
 
 
-def create_extracted_folder() -> str:
+def create_extracted_folder(master_zip_name: str) -> str:
     """
     Creates a folder for all the student submissions.
 
     :return: The path of the created folder.
     """
     date = datetime.datetime.now()
-    directory_name = "StudentSubmissions " + date.strftime("%Y-%m-%d %H-%M-%S")
 
+    # If the zip file name has standard Pilot formatting, add the assignment name to the directory
+    # Standard Pilot Formatting Example: "Project 3 Download Mar 30, 2025 507 PM.zip"
+    if master_zip_name.__contains__("Download") and (master_zip_name.__contains__("Project")
+                                                           or master_zip_name.__contains__("Lab Problem")):
+        # Extracts the assignment name from the file name by using "Download" as a delimiter
+        assignment_name = master_zip_name.split("/")[-1:][0].strip().split("Download")[0]
+        directory_name = f"StudentSubmissions {assignment_name}" + date.strftime("%m-%d-%Y %H-%M-%S")
+    else :
+        # If non-standard formatting is used, a folder with a default name will be created
+        directory_name = "StudentSubmissions " + date.strftime("%m-%d-%Y %H-%M-%S")
     try:
         prepare_directory(directory_name)
-        print_message(f"(-) Directory '{directory_name}' created successfully.")
+        print_message(f"(+) Directory '{directory_name}' created successfully.")
         return os.path.abspath(directory_name)
 
     except PermissionError:
         print_message(f"(-) Permission denied: Unable to create '{directory_name}'.")
+        sys.exit(1)
 
     except Exception as e:
         print_message(f"(-) An error occurred: {e}")
+        sys.exit(1)
 
 
 def is_most_recent_submission(selected_submission_name: str, student_folder_path: str) -> bool:
@@ -181,13 +222,13 @@ def create_student_folders(student_submission_path: str) -> None:
             destination_path = joiner(student_submission_path, file_name.split(" - ")[1])
             shutil.move(source_path, destination_path)
 
-        # FIXME: Add a check/sorter here for multiple student submissions
-        for student_folder in os.listdir(student_submission_path):
-            if is_dir(student_submission_path, student_folder):
-                for submission in os.listdir(joiner(student_submission_path, student_folder)):
-                    if is_most_recent_submission(submission, joiner(student_submission_path, student_folder)):
-                        break
-                # add logic to remove other submissions here
+        # TODO: Add a sorter here for organizing folders by time of submission
+        # for student_folder in os.listdir(student_submission_path):
+        #     if is_dir(student_submission_path, student_folder):
+        #         for submission in os.listdir(joiner(student_submission_path, student_folder)):
+        #             if is_most_recent_submission(submission, joiner(student_submission_path, student_folder)):
+        #                 break
+        #         # add logic to remove other submissions here
 
     except IndexError:
         print_message(f"(-) An error occurred while organizing student folders")
@@ -219,15 +260,16 @@ def extract_student_subs(student_submission_path: str) -> None:
         sys.exit(1)
 
 
-# Main method
+def main():
+    zip_path = input("Enter the path of the zip file: ")
+    zip_path = zip_path.replace('\\', '/').replace('"', '')
 
-zip_path = input("Enter the path of the zip file: ")
-zip_path = zip_path.replace('\\','/')
-zip_path = zip_path.replace('"','')
+    extracted_path = create_extracted_folder(zip_path)
+    extract_zip_file(zip_path, str(extracted_path))
+    create_student_folders(str(extracted_path))
+    extract_student_subs(str(extracted_path))
 
-#"C:\Users\roset\OneDrive\Desktop\Project 4 Download Dec 16, 2024 957 PM.zip"
-extracted_path = create_extracted_folder()
 
-extract_zip_file(zip_path, str(extracted_path))
-create_student_folders(str(extracted_path))
-extract_student_subs(str(extracted_path))
+# Start program
+if __name__ == "__main__":
+    main()
