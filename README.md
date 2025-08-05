@@ -18,11 +18,17 @@ If this is a first time run, you can download the script or clone the repo:
 
 ```bash
 git clone https://github.com/OfficeCoffee/GradingFileProject.git
+cd GradingFileProject
 ```
 
-The script can be run in the terminal with `python`. You can give it either the absolute or relative path (if in python script root) to your Pilot download zipfile.
+The script can be run in the terminal with `python`. 
 
 ```bash
 python Grader.py
+```
+
+You can give it either the absolute or relative path (if in python script root) to your Pilot download zipfile.
+
+```bash
 Enter the path of the zip file: /home/user/Repos/GradingFileProject/Project 4 Download Aug 1, 2025 900 AM.zip
 ```
