@@ -129,7 +129,9 @@ def alter_file_name_formatting(student_submission_path: str, submission_file_nam
 
     # Extracts the numerical time value and add a colon to separate the hour from the minute (915 -> 9:15)
     file_name_old_hour_format = file_name_as_list[2].split(" ")
-    file_name_old_hour_format[3] = file_name_old_hour_format[3][:-2] + ":" + file_name_old_hour_format[3][-2:]
+    file_name_old_hour_format[3] = (
+        file_name_old_hour_format[3][:-2] + ":" + file_name_old_hour_format[3][-2:]
+    )
 
     # Parses the submission's full time value by converting it into a number and removing punctuation from it.
     # Example "Dec 7, 2024 915 PM" -> "2024-12-07 21:15:00"
@@ -198,6 +200,7 @@ def create_student_folders(student_submission_path: str) -> None:
 
         # Generates a list of names of the students who made at least one submission
         for file_name in os.listdir(student_submission_path):
+            # Skip if file_name is a folder or is the index.html document
             if is_dir(student_submission_path, file_name) or file_name == "index.html":
                 continue
             student_name = (file_name.split(" - ")[1]).split(" ")
@@ -209,13 +212,13 @@ def create_student_folders(student_submission_path: str) -> None:
         student_names = list(set(student_names)) # Removes duplicates from name list
         student_names.sort() # Sorts students names alphabetically by last name
 
-        # Makes a named folder for each student
+        # Make a named folder for each student
         for name in student_names:
             prepare_directory(joiner(student_submission_path, name))
 
         # Moves all submitted files to respective folders based on student name
         for file_name in os.listdir(student_submission_path):
-            # Skip if file is a folder or is the index.html document
+            # Skip if file_name is a folder or is the index.html document
             if is_dir(student_submission_path, file_name) or file_name == "index.html":
                 continue
             source_path = joiner(student_submission_path, file_name)
@@ -246,23 +249,65 @@ def extract_student_subs(student_submission_path: str) -> None:
     :param student_submission_path: The path of the student submission folder
     """
     try:
+        # Iterate through all student folders containing each of their submissions
         for folder in os.listdir(student_submission_path):
-            if folder == "index.html":
-                continue
+            if folder == "index.html": continue
+
+            # Handle each file submitted by the student from Pilot
             for file in os.listdir(joiner(student_submission_path, folder)):
                 if file.endswith(".zip"):
+                    # Extract all submitted zip files and move extractions to
+                    # each student's individual timed submission folder
                     extract_zip_file(joiner(student_submission_path, folder, file),
                                      joiner(student_submission_path, folder))
                     os.remove(joiner(student_submission_path, folder, file))
-                elif file.endswith(".java"):
+                elif file.endswith(".java") or file.endswith(".md"):
+                    # Clean single file submission from Pilot format to regular:
+                    # "123-123 - Last, First - TIMESTAMP - Main.java" -> "Main.java"
                     isolated_file_name = file.split(" - ")[3]
                     os.rename(joiner(student_submission_path, folder, file),
                               joiner(student_submission_path, folder, isolated_file_name))
                 else:
+                    # If not .zip, .java, or .md, then it is not a valid submission
                     print_message(f"{joiner(student_submission_path, folder, file)} is not a valid submission")
+                    continue
 
     except Exception as e:
         print_message(f"(-) An error occurred while extracting student zip files: {e}")
+        sys.exit(1)
+
+
+def clean_student_subs(student_submission_path: str) -> None:
+    """
+    Cleans all student submission in each named student folder by removing
+    unwanted/unneeded files and directories.
+
+    :param student_submission_path: The path of the student submission folder
+    """
+    try:
+        dir_names_to_delete = ("__MACOSX", "out", "bin", "lib", ".idea", ".vscode")
+
+        for dir_path, dir_names, file_names in os.walk(joiner(student_submission_path)):
+            # Delete .gitignore files and any files ending in `.iml`
+            for file_name in file_names:
+                if file_name == ".gitignore" or file_name.endswith(".iml"):
+                    try:
+                        os.remove(joiner(dir_path, file_name))
+                        print_message(f"Deleted file {dir_path}/{file_name}")
+                    except Exception as e:
+                        print_message(f"Error deleting file {dir_path}/{file_name}: {e}")
+
+            # Delete any dirs if they have the name of any dir in dir_names_to_delete
+            for dir_name in dir_names:
+                if dir_name in dir_names_to_delete:
+                    try:
+                        shutil.rmtree(joiner(dir_path, dir_name))
+                        print_message(f"Deleted dir {dir_path}/{dir_name}")
+                    except Exception as e:
+                        print_message(f"Error deleting dir {dir_path}/{dir_name}: {e}")
+
+    except Exception as e:
+        print_message(f"(-) An error occurred while cleaning student zip files: {e}")
         sys.exit(1)
 
 
@@ -274,6 +319,7 @@ def main():
     extract_zip_file(zip_path, str(extracted_path))
     create_student_folders(str(extracted_path))
     extract_student_subs(str(extracted_path))
+    clean_student_subs(str(extracted_path))
 
 
 # Start program
