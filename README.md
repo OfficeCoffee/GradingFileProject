@@ -14,13 +14,13 @@ TAs and faculity. Mainly used to take out the manual labor unzipping, moving, an
 
 ### How do I run this? 
 
-If this is a first time run, you can run the following:
+If this is a first time run, you can download the script or clone the repo:
 
 ```bash
-git clone 
+git clone https://github.com/OfficeCoffee/GradingFileProject.git
 ```
 
-Otherwise, you can run it with `python`. You will give it either the absolute or relative path (if in python script root) to your Pilot download zipfile.
+The script can be run in the terminal with `python`. You can give it either the absolute or relative path (if in python script root) to your Pilot download zipfile.
 
 ```bash
 python Grader.py
