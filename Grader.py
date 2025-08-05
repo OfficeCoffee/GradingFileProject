@@ -73,25 +73,25 @@ def extract_zip_file(zip_file_path: str, extraction_path: str) -> None:
     try:
         with zipfile.ZipFile(zip_file_path, 'r') as target_zip:
             if zip_file_path.__contains__("Download") and (zip_file_path.__contains__("Project")
-                                                           or zip_file_path.__contains__("Lab Problem")):
+                                                        or zip_file_path.__contains__("Lab Problem")):
                 target_zip.extractall(extraction_path)
             else:
                 """
                 Obtains the timestamp in the file's name by filtering out other information from zip_file_path
-                
-                # Replaces any \\ characters (for Windows users) into \ for UNIX operating systems 
+
+                # Replaces any "\\" characters (for Windows users) into "\" for UNIX operating systems
                 -> /home/username/GradingFileProject/StudentSubmissions/LastName, FirstName/
                     123456-123456 - LastName, FirstName - TIMESTAMP - filename.zip
-                
-                # Splits the path up into its parts based on the \. 
-                -> ['home', 'username', 'GradingFileProject', 'StudentSubmissions', 'LastName, FirstName', 
+
+                # Splits the path up into its parts based on the "\".
+                -> ['home', 'username', 'GradingFileProject', 'StudentSubmissions', 'LastName, FirstName',
                     '123456-123456 - LastName, FirstName - TIMESTAMP - filename.zip']
-                
-                # The [-1:] grabs the last item in the list, which is the name of the zipfile. 
-                # Since we are still in a list, the [0] grabs the zipfile name string. 
+
+                # The [-1:] grabs the last item in the list, which is the name of the zipfile.
+                # Since we are still in a list, the [0] grabs the zipfile name string.
                 -> '123456-123456 - LastName, FirstName - TIMESTAMP - filename.zip'
-               
-                # Another split happens with (" - "). The [2] grabs the timestamp part of the zipfile name. 
+
+                # Another split happens with (" - "). The [2] grabs the timestamp part of the zipfile name.
                 -> ['123456-123456', 'LastName, FirstName', 'TIMESTAMP', 'filename.zip']
                 """
                 file_timestamp = zip_file_path.replace('\\', '/').split("/")[-1:][0].split(" - ")[2] + " #0"
@@ -231,7 +231,7 @@ def create_student_folders(student_submission_path: str) -> None:
         #         # add logic to remove other submissions here
 
     except IndexError:
-        print_message(f"(-) An error occurred while organizing student folders")
+        print_message("(-) An error occurred while organizing student folders")
         sys.exit(1)
 
     except Exception as e:
@@ -254,6 +254,12 @@ def extract_student_subs(student_submission_path: str) -> None:
                     extract_zip_file(joiner(student_submission_path, folder, file),
                                      joiner(student_submission_path, folder))
                     os.remove(joiner(student_submission_path, folder, file))
+                elif file.endswith(".java"):
+                    isolated_file_name = file.split(" - ")[3]
+                    os.rename(joiner(student_submission_path, folder, file),
+                              joiner(student_submission_path, folder, isolated_file_name))
+                else:
+                    print_message(f"{joiner(student_submission_path, folder, file)} is not a valid submission")
 
     except Exception as e:
         print_message(f"(-) An error occurred while extracting student zip files: {e}")
