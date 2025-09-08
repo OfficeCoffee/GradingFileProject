@@ -285,7 +285,7 @@ def clean_student_subs(student_submission_path: str) -> None:
     :param student_submission_path: The path of the student submission folder
     """
     try:
-        dir_names_to_delete = ("__MACOSX", "out", "bin", "lib", ".idea", ".vscode")
+        dir_names_to_delete = ("__MACOSX", "out", "bin", "lib", ".idea", ".vscode", ".DS_Store")
 
         for dir_path, dir_names, file_names in os.walk(joiner(student_submission_path)):
             # Delete .gitignore files and any files ending in `.iml`
