@@ -17,8 +17,7 @@ TAs and faculity. Mainly used to take out the manual labor unzipping, moving, an
 If this is a first time run, you can download the script or clone the repo:
 
 ```bash
-git clone https://github.com/OfficeCoffee/GradingFileProject.git
-cd GradingFileProject
+git clone https://github.com/OfficeCoffee/GradingFileProject.git && cd GradingFileProject
 ```
 
 The script can be run in the terminal with `python`. 
@@ -45,3 +44,5 @@ Enter the path of the zip file: /home/user/Repos/GradingFileProject/Project 4 Do
 ```
 
 2. Leave an issue on GitHub. Try to include as much information as possible (screenshot of current directory, contents of student submissions folder, console output/error message, and anything else you think would be useful for us to know)
+
+
