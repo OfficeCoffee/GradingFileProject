@@ -6,13 +6,20 @@ import sys
 import os
 import datetime
 
+scriptLogPath = ""
+verboseOutput = False
+
+
 def print_message(message: str) -> None:
+    global scriptLogPath, verboseOutput
     """
     Logs a message to the console.
 
     :param message: The message to be printed
     """
-    print(message)
+    with open(scriptLogPath, 'a') as logfile:
+        logfile.write(message + '\n')
+    if verboseOutput: print(message)
 
 
 def joiner(directory_path: str, *file_names: str) -> LiteralString | str:
@@ -44,8 +51,8 @@ def is_dir(directory_path: str, *file_name: str) -> bool:
 
 def prepare_directory(directory_path: str) -> None:
     """
-    Ensures that the given directory is ready for use by clearing
-    its contents if it exists, or creating it otherwise
+    Ensures that the given directory is ready for use by clearing its
+    contents if it exists, or creating it otherwise
 
     :param directory_path: Path of the directory to prepare
     """
@@ -58,9 +65,10 @@ def prepare_directory(directory_path: str) -> None:
                 shutil.rmtree(directory_path)
         else:
             os.makedirs(directory_path)
+        print_message(f"(+) Prepared directory '{directory_path}'")
 
     except Exception as e:
-        print_message(f"(-) An error occurred while preparing directory {directory_path}: {e}")
+        print_message(f"(-) An error occurred while preparing directory '{directory_path}': {e}")
 
 
 def extract_zip_file(zip_file_path: str, extraction_path: str) -> None:
@@ -75,6 +83,7 @@ def extract_zip_file(zip_file_path: str, extraction_path: str) -> None:
             if zip_file_path.__contains__("Download") and (zip_file_path.__contains__("Project")
                                                         or zip_file_path.__contains__("Lab Problem")):
                 target_zip.extractall(extraction_path)
+                print_message(f"(+) Contents of '{zip_file_path}' was extracted to '{extraction_path}'")
             else:
                 """
                 Obtains the timestamp in the file's name by filtering out other information from zip_file_path
@@ -104,14 +113,17 @@ def extract_zip_file(zip_file_path: str, extraction_path: str) -> None:
                     file_timestamp = " ".join(file_timestamp_list)
 
                 # Create a new folder with the submission's timestamp and extract the submission files to this folder
-                os.mkdir(joiner(extraction_path, file_timestamp))
-                target_zip.extractall(joiner(extraction_path, file_timestamp))
+                submissionDirPath = joiner(extraction_path, file_timestamp)
+                os.mkdir(submissionDirPath)
+                target_zip.extractall(submissionDirPath)
+                print_message(f"(+) Contents of '{zip_file_path}' was extracted to '{submissionDirPath}'")
+
 
     except FileNotFoundError:
-        print_message(f"(-) Could not find zip file: {zip_file_path}")
+        print_message(f"(-) Could not find zip file: '{zip_file_path}'")
 
     except Exception as e:
-        print_message(f"(-) An error occurred while extracting {zip_file_path}: {e}")
+        print_message(f"(-) An error occurred while extracting '{zip_file_path}': {e}")
         sys.exit(1)
 
 
@@ -139,9 +151,10 @@ def alter_file_name_formatting(student_submission_path: str, submission_file_nam
     # .translate(str.maketrans('', '', string.punctuation)).replace(" ", "_")[:-2] TODO: move this elsewhere
 
     # Renames the current submission name with the newly formated file name
-    new_file_name = " - ".join(file_name_as_list)
-    os.rename(joiner(student_submission_path, submission_file_name),
-              joiner(student_submission_path, new_file_name))
+    old_file_name_path = joiner(student_submission_path, submission_file_name)
+    new_file_name_path = joiner(student_submission_path, " - ".join(file_name_as_list))
+    os.rename(old_file_name_path, new_file_name_path)
+    print_message(f"(+) Renamed '{old_file_name_path}' to '{new_file_name_path}'")
 
 
 def create_extracted_folder(master_zip_name: str) -> str:
@@ -164,11 +177,11 @@ def create_extracted_folder(master_zip_name: str) -> str:
         directory_name = "StudentSubmissions " + date.strftime("%m-%d-%Y %H-%M-%S")
     try:
         prepare_directory(directory_name)
-        print_message(f"(+) Directory '{directory_name}' created successfully.")
+        print_message(f"(+) Directory '{directory_name}' created successfully")
         return os.path.abspath(directory_name)
 
     except PermissionError:
-        print_message(f"(-) Permission denied: Unable to create '{directory_name}'.")
+        print_message(f"(-) Permission denied: Unable to create '{directory_name}'")
         sys.exit(1)
 
     except Exception as e:
@@ -214,7 +227,8 @@ def create_student_folders(student_submission_path: str) -> None:
 
         # Make a named folder for each student
         for name in student_names:
-            prepare_directory(joiner(student_submission_path, name))
+            named_dir_path = joiner(student_submission_path, name)
+            prepare_directory(named_dir_path)
 
         # Moves all submitted files to respective folders based on student name
         for file_name in os.listdir(student_submission_path):
@@ -224,6 +238,7 @@ def create_student_folders(student_submission_path: str) -> None:
             source_path = joiner(student_submission_path, file_name)
             destination_path = joiner(student_submission_path, file_name.split(" - ")[1])
             shutil.move(source_path, destination_path)
+            print_message(f"(+) Moved '{source_path}' to '{destination_path}'")
 
         # TODO: Add a sorter here for organizing folders by time of submission
         # for student_folder in os.listdir(student_submission_path):
@@ -255,21 +270,28 @@ def extract_student_subs(student_submission_path: str) -> None:
 
             # Handle each file submitted by the student from Pilot
             for file in os.listdir(joiner(student_submission_path, folder)):
+                currentFile = joiner(student_submission_path, folder, file);
+
                 if file.endswith(".zip"):
                     # Extract all submitted zip files and move extractions to
                     # each student's individual timed submission folder
-                    extract_zip_file(joiner(student_submission_path, folder, file),
-                                     joiner(student_submission_path, folder))
-                    os.remove(joiner(student_submission_path, folder, file))
+                    currentStudentDir = joiner(student_submission_path, folder)
+                    extract_zip_file(currentFile, currentStudentDir)
+                    os.remove(currentFile)
+                    print_message(f"(+) Contents of '{currentFile}' was extracted to '{currentStudentDir}'")
+
                 elif file.endswith(".java") or file.endswith(".md"):
                     # Clean single file submission from Pilot format to regular:
                     # "123-123 - Last, First - TIMESTAMP - Main.java" -> "Main.java"
-                    isolated_file_name = file.split(" - ")[3]
-                    os.rename(joiner(student_submission_path, folder, file),
-                              joiner(student_submission_path, folder, isolated_file_name))
+                    isolated_file_name_path = (
+                        joiner(student_submission_path, folder, file.split(" - ")[3]))
+                    os.rename(currentFile, isolated_file_name_path)
+                    print_message(
+                        f"(+) Submission file '{currentFile}' was renamed to '{isolated_file_name_path}'")
+
                 else:
                     # If not .zip, .java, or .md, then it is not a valid submission
-                    print_message(f"{joiner(student_submission_path, folder, file)} is not a valid submission")
+                    print_message(f"(!) '{currentFile}' is not a valid submission")
                     continue
 
     except Exception as e:
@@ -293,18 +315,18 @@ def clean_student_subs(student_submission_path: str) -> None:
                 if file_name == ".gitignore" or file_name.endswith(".iml"):
                     try:
                         os.remove(joiner(dir_path, file_name))
-                        print_message(f"Deleted file {dir_path}/{file_name}")
+                        print_message(f"(+) Deleted file '{dir_path}/{file_name}'")
                     except Exception as e:
-                        print_message(f"Error deleting file {dir_path}/{file_name}: {e}")
+                        print_message(f"(-) Error deleting file '{dir_path}/{file_name}': {e}")
 
             # Delete any dirs if they have the name of any dir in dir_names_to_delete
             for dir_name in dir_names:
                 if dir_name in dir_names_to_delete:
                     try:
                         shutil.rmtree(joiner(dir_path, dir_name))
-                        print_message(f"Deleted dir {dir_path}/{dir_name}")
+                        print_message(f"(+) Deleted dir '{dir_path}/{dir_name}'")
                     except Exception as e:
-                        print_message(f"Error deleting dir {dir_path}/{dir_name}: {e}")
+                        print_message(f"(-) Error deleting dir '{dir_path}/{dir_name}': {e}")
 
     except Exception as e:
         print_message(f"(-) An error occurred while cleaning student zip files: {e}")
@@ -312,8 +334,14 @@ def clean_student_subs(student_submission_path: str) -> None:
 
 
 def main():
+    global scriptLogPath, verboseOutput
+
     zip_path = input("Enter the path of the zip file: ")
     zip_path = zip_path.replace('\\', '').replace('"', '').replace("'", '')
+
+    scriptLogPath = f"Log {datetime.datetime.now().strftime("%m-%d-%Y %H-%M-%S")}.log"
+    open(scriptLogPath, 'a').close()
+    print_message(f"(+) Log file '{scriptLogPath}' created successfully")
 
     extracted_path = create_extracted_folder(zip_path)
     extract_zip_file(zip_path, str(extracted_path))
