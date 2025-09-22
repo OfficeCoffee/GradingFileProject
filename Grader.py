@@ -175,7 +175,6 @@ def create_extracted_folder(master_zip_name: str) -> str:
         directory_name = "StudentSubmissions " + date.strftime("%m-%d-%Y %H-%M-%S")
     try:
         prepare_directory(directory_name)
-        log(f"(+) Directory '{directory_name}' created successfully")
         return os.path.abspath(directory_name)
 
     except PermissionError:
@@ -185,18 +184,6 @@ def create_extracted_folder(master_zip_name: str) -> str:
     except Exception as e:
         log(f"(-) An error occurred: {e}")
         sys.exit(1)
-
-
-def is_most_recent_submission(selected_submission_name: str, student_folder_path: str) -> bool:
-    """
-    FIXME: Implement this functionality and documentation
-    :param selected_submission_name:
-    :param student_folder_path:
-    :return:
-    """
-    # for submission_name in os.listdir(student_folder_path):
-    #     if submission_name.split(" ")[3] == selected_submission_name.split(" ")[3]:
-    #         log("")
 
 
 def create_student_folders(student_submission_path: str) -> None:
@@ -237,14 +224,6 @@ def create_student_folders(student_submission_path: str) -> None:
             destination_path = joiner(student_submission_path, file_name.split(" - ")[1])
             shutil.move(source_path, destination_path)
             log(f"(+) Moved '{source_path}' to '{destination_path}'")
-
-        # TODO: Add a sorter here for organizing folders by time of submission
-        # for student_folder in os.listdir(student_submission_path):
-        #     if is_dir(student_submission_path, student_folder):
-        #         for submission in os.listdir(joiner(student_submission_path, student_folder)):
-        #             if is_most_recent_submission(submission, joiner(student_submission_path, student_folder)):
-        #                 break
-        #         # add logic to remove other submissions here
 
     except IndexError:
         log("(-) An error occurred while organizing student folders")
