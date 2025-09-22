@@ -313,7 +313,7 @@ def clean_student_subs(student_submission_path: str) -> None:
 
 def main():
     zip_path = input("Enter the path of the zip file: ")
-    zip_path = zip_path.replace('\\', '/').replace('"', '')
+    zip_path = zip_path.replace('\\', '').replace('"', '').replace("'", '')
 
     extracted_path = create_extracted_folder(zip_path)
     extract_zip_file(zip_path, str(extracted_path))
