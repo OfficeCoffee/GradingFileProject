@@ -43,6 +43,9 @@ Enter the path of the zip file: /home/user/Repos/GradingFileProject/Submissions.
 Enter the path of the zip file: /home/user/Repos/GradingFileProject/Project 4 Download Aug 1, 2025 900 AM.zip
 ```
 
-2. Reach out to us. Try to include as much information as possible in your message/email (screenshot of current directory, contents of student submissions folder, log file contents, error message(s), and anything else you think would be useful for us to know). DO NOT MAKE ANY STUDENT INFORMATION PUBLIC ON GITHUB OR ELSEWHERE. 
+2. Reach out to us. Try to include as much information as possible in your message/email (screenshot of current directory, contents of student submissions folder, log file contents, error message(s), and anything else you think would be useful for us to know).
+
+> [!CAUTION]
+> DO NOT MAKE ANY STUDENT INFORMATION PUBLIC ON GITHUB OR ELSEWHERE. 
 
 
