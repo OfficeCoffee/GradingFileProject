@@ -17,7 +17,7 @@ def log(message: str) -> None:
     :param message: The message to be printed
     """
     with open(script_log_path, 'a') as log_file:
-        log_file.write(message + '\n')
+        _ = log_file.write(message + '\n')
 
 
 def joiner(directory_path: str, *file_names: str) -> LiteralString | str:
@@ -64,6 +64,10 @@ def prepare_directory(directory_path: str) -> None:
         else:
             os.makedirs(directory_path)
         log(f"(+) Prepared directory '{directory_path}'")
+
+    except PermissionError:
+        log(f"(-) Permission denied: Unable to create dir '{directory_path}'")
+        sys.exit(1)
 
     except Exception as e:
         log(f"(-) An error occurred while preparing directory '{directory_path}': {e}")
@@ -177,10 +181,6 @@ def create_extracted_folder(master_zip_name: str) -> str:
         prepare_directory(directory_name)
         return os.path.abspath(directory_name)
 
-    except PermissionError:
-        log(f"(-) Permission denied: Unable to create '{directory_name}'")
-        sys.exit(1)
-
     except Exception as e:
         log(f"(-) An error occurred: {e}")
         sys.exit(1)
@@ -222,7 +222,7 @@ def create_student_folders(student_submission_path: str) -> None:
                 continue
             source_path = joiner(student_submission_path, file_name)
             destination_path = joiner(student_submission_path, file_name.split(" - ")[1])
-            shutil.move(source_path, destination_path)
+            _ = shutil.move(source_path, destination_path)
             log(f"(+) Moved '{source_path}' to '{destination_path}'")
 
     except IndexError:
@@ -326,6 +326,7 @@ def main():
         create_student_folders(str(extracted_path))
         extract_student_subs(str(extracted_path))
         clean_student_subs(str(extracted_path))
+
     except Exception:
         print(f"An error has occured. Please check log file: {script_log_path}")
 
