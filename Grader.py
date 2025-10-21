@@ -326,6 +326,8 @@ def main():
         create_student_folders(str(extracted_path))
         extract_student_subs(str(extracted_path))
         clean_student_subs(str(extracted_path))
+        log(f"(!) Master zip file: '{extracted_path}' organized successfully")
+        print(f"Master zip file: '{extracted_path}' organized successfully")
 
     except Exception:
         print(f"An error has occured. Please check log file: {script_log_path}")
