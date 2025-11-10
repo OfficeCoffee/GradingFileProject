@@ -10,7 +10,7 @@
 
 ### Who is this for?
 
-TAs and faculity. Mainly used to take out the manual labor unzipping, moving, and renaming files.
+TAs and faculty. Mainly used to take out the manual labor unzipping, moving, and renaming files.
 
 ### How do I run this?
 
