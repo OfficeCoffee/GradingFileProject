@@ -9,6 +9,6 @@ setup(
     url='github.com',
     packages=find_packages(),
     install_requires=[
-        'types-python-dateutil',
+        'python-dateutil',
     ],
 )
