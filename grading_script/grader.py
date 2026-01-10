@@ -333,9 +333,14 @@ def extract_all_from_zip(zip_path: str) -> None:
 
 def main():
     global script_log_path
-
-    zip_path = input("Enter the path of the zip file: ")
-    zip_path = zip_path.replace("\\", "").replace('"', "").replace("'", "")
+    
+    
+    zip_path = None
+    if sys.argv[1]:
+        zip_path = sys.argv[1]
+    else:
+        zip_path = input("Enter the path of the zip file: ")
+        zip_path = zip_path.replace("\\", "").replace('"', "").replace("'", "")
 
 
     now = datetime.datetime.now().strftime("%m-%d-%Y %H-%M-%S")
