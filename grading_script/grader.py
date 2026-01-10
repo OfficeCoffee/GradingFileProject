@@ -322,6 +322,15 @@ def clean_student_subs(student_submission_path: str) -> None:
         sys.exit(1)
 
 def extract_all_from_zip(zip_path: str) -> None:
+    
+    global script_log_path
+
+    
+    now = datetime.datetime.now().strftime("%m-%d-%Y %H-%M-%S")
+    script_log_path = f"Log {now}.log"
+    open(script_log_path, "a").close()
+    log(f"(+) Log file '{script_log_path}' created successfully")
+
     extracted_path = create_extracted_folder(zip_path)
     extract_zip_file(zip_path, str(extracted_path))
     create_student_folders(str(extracted_path))
@@ -332,7 +341,6 @@ def extract_all_from_zip(zip_path: str) -> None:
 
 
 def main():
-    global script_log_path
     
     
     zip_path = None
@@ -341,12 +349,6 @@ def main():
     else:
         zip_path = input("Enter the path of the zip file: ")
         zip_path = zip_path.replace("\\", "").replace('"', "").replace("'", "")
-
-
-    now = datetime.datetime.now().strftime("%m-%d-%Y %H-%M-%S")
-    script_log_path = f"Log {now}.log"
-    open(script_log_path, "a").close()
-    log(f"(+) Log file '{script_log_path}' created successfully")
 
     try:
         extract_all_from_zip(zip_path)
