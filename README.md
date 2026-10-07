@@ -6,7 +6,7 @@
 2. Creates a folder for each student who made a submission for that assignment
 3. Moves all student submissions to their named folder. Changes naming from Pilot's formatting of first/last name to last/first name
 4. Unzips their zips (if applicable) and scrubs file names of any Pilot formatting
-5. Removes junk files/dirs from student folders (`out`, `__MACOSX`, `.idea`, etc.)
+5. Removes junk files/dirs from student folders (`out`, `bin`, `lib`, `__MACOSX`, `.idea`, etc.)
 
 ## Who is this for?
 
@@ -32,7 +32,7 @@ $ python -m grading_script
 Enter the path of the zip file: /home/user/Repos/GradingFileProject/Project 4 Download Aug 1, 2025 900 AM.zip
 ```
 
-### Path given before script execution
+## Path given before script execution
 
 ```bash
 $ python -m grading_script <path-to-master-zip-file>
