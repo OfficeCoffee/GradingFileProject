@@ -10,7 +10,7 @@
 
 ### Who is this for?
 
-TAs and faculty. Mainly used to take out the manual labor unzipping, moving, and renaming files.
+TAs and faculty. Mainly used to take out the manual labor unzipping, moving, and renaming files. Allows for a "bird's-eye" of all student submission for a given assignment. 
 
 ### How do I run this?
 
@@ -20,17 +20,29 @@ If this is a first time run, you can download the script or clone the repo:
 git clone https://github.com/OfficeCoffee/GradingFileProject.git && cd GradingFileProject
 ```
 
-The script can be run in the terminal with `python`.
+#### Path given after script execution
+
+The script can be run in the terminal with `python` or `python3`.
 
 ```bash
-python Grader.py
+python -m grading_script <optional-path-to-master-zipfile-argument>
 ```
 
-You can give it either the absolute or relative path (if in python script root) to your Pilot download zipfile. If you change the name of the zip from how Pilot formats it, you may run into an error.
+You can give it either the absolute or relative path (if current working directory is root of project)  to your Pilot download zipfile. If you change the name of the zip from how Pilot formats it, you may run into an error.
 
 ```bash
 Enter the path of the zip file: /home/user/Repos/GradingFileProject/Project 4 Download Aug 1, 2025 900 AM.zip
 ```
+
+#### Path given before script execution
+
+The script can be run in the terminal with `python` or `python3`.
+
+```bash
+python -m grading_script <path-to-master-zip-file>
+```
+
+You can give it either the absolute or relative path (if current working directory is root of project) to your Pilot download zipfile. If you change the name of the zip from how Pilot formats it, you may run into an error.
 
 ### I got an error, what do I do?
 
